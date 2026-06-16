@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 
 interface User {
   id: string;
@@ -42,8 +42,13 @@ export class UsersController {
   @Post()
   createUser(@Body() body: User) {
 
-    const newId = this.users.length > 0 ? Math.max(...this.users.map(u => Number(u.id))) + 1 : 1;
-    const newUser = { ...body, id: newId.toString() };
+    const newUser = {
+      ...body,
+      id: `${new Date().getTime()}`,
+    };
+
+    /* const newId = this.users.length > 0 ? Math.max(...this.users.map(u => Number(u.id))) + 1 : 1;
+    const newUser = { ...body, id: newId.toString() }; */
 
     this.users.push(newUser);
     return newUser;
@@ -64,5 +69,26 @@ export class UsersController {
     return {
       message: 'User deleted',
     };
+  }
+
+  @Put(':id')
+  updateUser(@Param('id') id: string, @Body() changes: User) {
+    const position = this.users.findIndex((user) => user.id === id);
+
+    if (position === -1) {
+      return {
+        error: 'User not found',
+      }
+    }
+
+    const currentData = this.users[position];
+    const updatedUser = {
+      ...currentData,
+      ...changes,
+    }
+
+    this.users[position] = updatedUser;
+
+    return updatedUser;
   }
 }
